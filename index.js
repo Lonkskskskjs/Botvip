@@ -22,7 +22,7 @@ const moment = require('moment-timezone');
 const CONFIG = {
     CORE: {
         TOKEN: "8067704153:AAF1ZinZv0-iRNrrGv3gJYZuQU9OCzb33ts",
-        ADMIN_ID: 7675213335,
+        ADMIN_ID: 8258212830,
         ADMIN_HANDLE: "@Cskhtoolhehe",
         TZ: "Asia/Ho_Chi_Minh"
     },
