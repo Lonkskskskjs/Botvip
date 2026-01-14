@@ -2,7 +2,7 @@
  * ==============================================================================
  * 🚀 PROJECT: TITAN AI PREDICTOR MD5 - ULTIMATE MASTER ENTERPRISE
  * 🛠 VERSION: 60.9.9 (STABLE GOLDEN BUILD)
- * 👤 ADMIN: @cshtoolhehe (7675213335)
+ * 👤 ADMIN: @Cskhtoolhehe (7675213335)
  * 📂 ARCHITECTURE: MULTI-LAYER MODULAR ENGINE
  * ⚖️ COMMITMENT: CHỐNG CRASH | WIN-RATE 90% | BANKING 1S | 800+ LINES LOGIC
  * ==============================================================================
@@ -33,7 +33,7 @@ const SYSTEM_CONFIG = {
         NAME: "TITAN AI ULTIMATE",
         VER: "60.9.9",
         ADMIN_ID: 7675213335,
-        ADMIN_USER: "@cshtoolhehe"
+        ADMIN_USER: "@Cskhtoolhehe"
     },
     BOT: {
         TOKEN: "8405996362:AAGFmde0O-S0vZmRyFTs2cNN6Z0nyeMJYss",
