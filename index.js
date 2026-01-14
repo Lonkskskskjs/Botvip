@@ -36,7 +36,7 @@ const SYSTEM_CONFIG = {
         ADMIN_USER: "@Cskhtoolhehe"
     },
     BOT: {
-        TOKEN: "8405996362:AAGFmde0O-S0vZmRyFTs2cNN6Z0nyeMJYss",
+        TOKEN: "8067704153:AAF1ZinZv0-iRNrrGv3gJYZuQU9OCzb33ts",
         TIMEZONE: "Asia/Ho_Chi_Minh"
     },
     BANKING: {
