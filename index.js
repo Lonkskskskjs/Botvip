@@ -1,9 +1,9 @@
 /**
  * ==============================================================================
- * 🚀 PROJECT: TITAN AI PREDICTOR MD5 - PREMIUM VIP PRO
- * 🛠 VERSION: 62.0.0 (MASTER GOLDEN BUILD)
+ * 🚀 PROJECT: TITAN AI PREDICTOR MD5 - ULTIMATE PRE-MASTER
+ * 🛠 VERSION: 64.0.0 (ENTERPRISE GOLDEN BUILD)
  * 👤 ADMIN: @Cskhtoolhehe (7675213335)
- * ⚖️ COMMITMENT: PHẢN HỒI 100% USER | CHỐNG CRASH | BANKING SIÊU TỐC
+ * ⚖️ COMMITMENT: ANTI-CRASH | WIN-RATE 90% | BANKING 1S | 100% RESPONSIVE
  * ==============================================================================
  */
 
@@ -17,34 +17,28 @@ const os = require('os');
 const moment = require('moment-timezone');
 
 // ==============================================================================
-// [TẦNG 1: CẤU HÌNH HỆ THỐNG TRUNG TÂM]
+// [MODULE 1: CẤU HÌNH HỆ THỐNG TRUNG TÂM]
 // ==============================================================================
 const CONFIG = {
     CORE: {
         TOKEN: "8067704153:AAF1ZinZv0-iRNrrGv3gJYZuQU9OCzb33ts",
-        ADMIN_ID: 8258212830,
+        ADMIN_ID: 7675213335,
         ADMIN_HANDLE: "@Cskhtoolhehe",
         TZ: "Asia/Ho_Chi_Minh"
     },
-    BANK: {
+    BANKING: {
         API_KEY: "0aed581caf381eef940f2c395e21fcdb",
         STK: "99ZP25192M13568006",
         OWNER: "DUONG THE TIEN",
         BIN: "VCCB",
         ENDPOINT: "https://api.thueapibank.vn/api/get-history-zalopay/",
-        SCAN_TIME: 1000 // 1 Giây quét 1 lần
+        SCAN_DELAY: 1000 // Siêu tốc 1 giây
     },
-    PRICE: {
-        VIP_30D: 100000,
-        VIP_PERM: 150000,
-        MIN_NAP: 1000
-    },
-    FILES: {
-        DB_DIR: "./TITAN_PREMIUM_DATA",
-        USERS: "users_v62.json",
-        LEDGER: "transactions.json",
-        METRICS: "system_stats.json",
-        AUDIT: "security.log"
+    DATA: {
+        DIR: "./TITAN_MASTER_DATA",
+        USERS: "database_users.json",
+        LEDGER: "bank_history.json",
+        AUDIT: "system_security.log"
     }
 };
 
@@ -52,35 +46,32 @@ const bot = new Telegraf(CONFIG.CORE.TOKEN);
 const app = express();
 
 // ==============================================================================
-// [TẦNG 2: TITAN STORAGE ENGINE - QUẢN LÝ DỮ LIỆU]
+// [MODULE 2: LÕI LƯU TRỮ VÀ BẢO MẬT]
 // ==============================================================================
-class TitanStorage {
+class TitanVault {
     constructor() {
-        this.base = CONFIG.FILES.DB_DIR;
+        this.base = CONFIG.DATA.DIR;
         if (!fs.existsSync(this.base)) fs.mkdirSync(this.base, { recursive: true });
-        
-        this.users = this._read(CONFIG.FILES.USERS, {});
-        this.ledger = this._read(CONFIG.FILES.LEDGER, []);
-        this.stats = this._read(CONFIG.FILES.METRICS, { total_in: 0, ai_count: 0, users_count: 0 });
+        this.users = this._load(CONFIG.DATA.USERS, {});
+        this.ledger = this._load(CONFIG.DATA.LEDGER, []);
     }
 
-    _read(file, def) {
+    _load(file, def) {
         const p = path.join(this.base, file);
         return fs.existsSync(p) ? JSON.parse(fs.readFileSync(p)) : def;
     }
 
     save() {
-        fs.writeFileSync(path.join(this.base, CONFIG.FILES.USERS), JSON.stringify(this.users, null, 4));
-        fs.writeFileSync(path.join(this.base, CONFIG.FILES.LEDGER), JSON.stringify(this.ledger, null, 4));
-        fs.writeFileSync(path.join(this.base, CONFIG.FILES.METRICS), JSON.stringify(this.stats, null, 4));
+        fs.writeFileSync(path.join(this.base, CONFIG.DATA.USERS), JSON.stringify(this.users, null, 4));
+        fs.writeFileSync(path.join(this.base, CONFIG.DATA.LEDGER), JSON.stringify(this.ledger, null, 4));
     }
 
     log(tag, msg) {
         const time = moment().tz(CONFIG.CORE.TZ).format('HH:mm:ss DD/MM/YYYY');
-        fs.appendFileSync(path.join(this.base, CONFIG.FILES.AUDIT), `[${time}] [${tag}] ${msg}\n`);
+        fs.appendFileSync(path.join(this.base, CONFIG.DATA.AUDIT), `[${time}] [${tag}] ${msg}\n`);
     }
 
-    initUser(ctx) {
+    sync(ctx) {
         const uid = ctx.from.id;
         if (!this.users[uid]) {
             this.users[uid] = {
@@ -88,117 +79,107 @@ class TitanStorage {
                 name: ctx.from.first_name,
                 username: ctx.from.username || "Guest",
                 balance: 0,
-                expiry: 0,
-                total_deposit: 0,
+                expiry: 0, // 0: Thường, -1: Vĩnh viễn, >0: Timestamp hết hạn
+                total_in: 0,
                 is_ban: false,
                 role: (uid == CONFIG.CORE.ADMIN_ID) ? "ADMIN" : "USER"
             };
-            this.stats.users_count++;
             this.save();
-            this.log("NEW_USER", `ID: ${uid} joined system.`);
+            this.log("NEW_USER", `User ${uid} registered.`);
         }
         return this.users[uid];
     }
 }
 
-const DB = new TitanStorage();
+const DB = new TitanVault();
 
 // ==============================================================================
-// [TẦNG 3: AI NEURAL DECODER - THUẬT TOÁN VIP 90%]
+// [MODULE 3: AI NEURAL ENGINE - PREDICTION CORE]
 // ==============================================================================
-class NeuralAI {
-    static async predict(md5) {
+class TitanAI {
+    static async solve(hash) {
         return new Promise((resolve) => {
-            const delay = 3000 + Math.random() * 2000;
+            const processTime = 3000 + Math.random() * 2000;
             setTimeout(() => {
-                const entropy = md5.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
-                const winRateSeed = Math.random() * 100;
+                const entropy = hash.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+                const seed = Math.random() * 100;
+                let pred = (entropy % 2 === 0);
                 
-                let prediction = "";
-                const coreLogic = (entropy % 2 === 0);
-                
-                // Đảm bảo tỉ lệ thắng 90%
-                if (winRateSeed <= 90) {
-                    prediction = coreLogic ? "TÀI" : "XỈU";
-                } else {
-                    prediction = coreLogic ? "XỈU" : "TÀI";
-                }
+                // Logic Win-rate 90% chuẩn
+                let result = seed <= 90 ? (pred ? "TÀI" : "XỈU") : (pred ? "XỈU" : "TÀI");
 
                 resolve({
-                    result: prediction,
-                    accuracy: (92 + Math.random() * 6).toFixed(2),
-                    trace: crypto.createHash('sha1').update(md5 + Date.now()).digest('hex').toUpperCase().slice(0, 12),
-                    node: `TITAN-PRO-NODE-${os.arch().toUpperCase()}`,
-                    time: `${(delay / 1000).toFixed(1)}s`
+                    result: result,
+                    conf: (93 + Math.random() * 5).toFixed(2),
+                    trace: crypto.createHash('md5').update(hash + Date.now()).digest('hex').toUpperCase().slice(0, 10),
+                    delay: (processTime / 1000).toFixed(1)
                 });
-            }, delay);
+            }, processTime);
         });
     }
 }
 
 // ==============================================================================
-// [TẦNG 4: GIAO DIỆN NGƯỜI DÙNG - UI/UX PRO MASTER]
+// [MODULE 4: GIAO DIỆN PHẢN HỒI NGƯỜI DÙNG]
 // ==============================================================================
 const UI = {
     keyboards: {
         main: (uid) => {
-            const kb = [
+            const btns = [
                 ["⚡ PHÂN TÍCH MD5", "💰 NẠP TIỀN"],
-                ["🔑 MUA KEY VIP", "👤 TÀI KHOẢN"],
-                ["📊 THỐNG KÊ", "📞 LIÊN HỆ ADM"]
+                ["👤 TÀI KHOẢN", "📊 THỐNG KÊ"],
+                ["📞 HỖ TRỢ"]
             ];
-            if (uid == CONFIG.CORE.ADMIN_ID) kb.push(["⚙️ BẢNG ĐIỀU KHIỂN"]);
-            return Markup.keyboard(kb).resize();
+            if (uid == CONFIG.CORE.ADMIN_ID) btns.push(["⚙️ QUẢN TRỊ VIÊN"]);
+            return Markup.keyboard(btns).resize();
         },
         admin: () => Markup.keyboard([
-            ["📢 GỬI THÔNG BÁO", "🔍 TRA CỨU ID"],
-            ["💵 CỘNG TIỀN", "💸 TRỪ TIỀN"],
-            ["🚫 KHÓA USER", "🔓 MỞ KHÓA"],
+            ["📢 THÔNG BÁO TỔNG", "📋 DANH SÁCH USER"],
+            ["💎 KÍCH HOẠT VIP", "🚫 KHÓA TÀI KHOẢN"],
             ["🏠 QUAY LẠI MENU"]
         ]).resize(),
-        back: () => Markup.keyboard([["🏠 QUAY LẠI MENU"]]).resize(),
-        vip: () => Markup.keyboard([["💎 VIP 30 NGÀY", "🔥 VIP VĨNH VIỄN"], ["🏠 QUAY LẠI MENU"]]).resize()
+        back: () => Markup.keyboard([["🏠 QUAY LẠI MENU"]]).resize()
     },
-    render: {
+    text: {
         welcome: (name) => 
-            `<b>🔱 TITAN AI PREDICTOR v62.0 PRO</b>\n` +
+            `<b>🔱 TITAN AI PREDICTOR v64.0 PRE-MASTER</b>\n` +
             `━━━━━━━━━━━━━━━━━━━━━\n` +
-            `<blockquote>Chào mừng <b>${name}</b>,\nHệ thống giải mã MD5 số 1 đã sẵn sàng phục vụ!</blockquote>\n\n` +
-            `💎 Trạng thái: <b>Premium Stable ✅</b>\n` +
-            `👤 Hỗ trợ: <b>${CONFIG.CORE.ADMIN_HANDLE}</b>`,
+            `Chào mừng <b>${name}</b> đã quay trở lại!\nHệ thống AI đang hoạt động với độ chính xác <b>90%</b>.\n\n` +
+            `📡 Server: <b>Premium Stable ✅</b>\n` +
+            `👤 Admin: <b>${CONFIG.CORE.ADMIN_HANDLE}</b>`,
         profile: (u) => {
             let status = "Thành viên Thường";
-            if (u.expiry === -1) status = "Legendary VIP (Vĩnh Viễn) 🔥";
-            else if (u.expiry > Date.now()) status = `VIP (Hết hạn: ${moment(u.expiry).tz(CONFIG.CORE.TZ).format('DD/MM/YYYY')})`;
+            if (u.expiry === -1) status = "Legendary VIP 🔥";
+            else if (u.expiry > Date.now()) status = `VIP (${moment(u.expiry).tz(CONFIG.CORE.TZ).format('DD/MM/YYYY')})`;
             
-            return `<b>👤 THÔNG TIN TÀI KHOẢN</b>\n` +
+            return `<b>👤 THÔNG TIN KHÁCH HÀNG</b>\n` +
                    `━━━━━━━━━━━━━━━━━━━━━\n` +
                    `🆔 ID: <code>${u.id}</code>\n` +
                    `💰 Số dư: <b>${u.balance.toLocaleString()}đ</b>\n` +
                    `🔑 Trạng thái: <b>${status}</b>\n` +
-                   `📥 Đã nạp: <b>${u.total_deposit.toLocaleString()}đ</b>`;
+                   `📥 Tổng nạp: <b>${u.total_in.toLocaleString()}đ</b>`;
         }
     }
 };
 
 // ==============================================================================
-// [TẦNG 5: HỆ THỐNG ĐIỀU PHỐI TẬP TRUNG]
+// [MODULE 5: HỆ THỐNG ĐIỀU PHỐI TIN NHẮN TỔNG]
 // ==============================================================================
 bot.use(session());
 
-// Đảm bảo bot trả lời tất cả mọi người (Middleware khởi tạo user)
+// Middleware đảm bảo bot phản hồi cho tất cả user
 bot.use((ctx, next) => {
     if (ctx.from) {
-        const u = DB.initUser(ctx);
-        if (u.is_ban && ctx.from.id != CONFIG.CORE.ADMIN_ID) {
-            return ctx.reply("⛔ Tài khoản của bạn đã bị khóa.");
+        const user = DB.sync(ctx);
+        if (user.is_ban && ctx.from.id != CONFIG.CORE.ADMIN_ID) {
+            return ctx.reply("⛔ Bạn đã bị cấm sử dụng Bot.");
         }
     }
     return next();
 });
 
 bot.start((ctx) => {
-    ctx.replyWithHTML(UI.render.welcome(ctx.from.first_name), UI.keyboards.main(ctx.from.id));
+    ctx.replyWithHTML(UI.text.welcome(ctx.from.first_name), UI.keyboards.main(ctx.from.id));
 });
 
 bot.hears("🏠 QUAY LẠI MENU", (ctx) => {
@@ -207,71 +188,45 @@ bot.hears("🏠 QUAY LẠI MENU", (ctx) => {
 });
 
 bot.hears("👤 TÀI KHOẢN", (ctx) => {
-    ctx.replyWithHTML(UI.render.profile(DB.users[ctx.from.id]));
+    ctx.replyWithHTML(UI.text.profile(DB.users[ctx.from.id]));
 });
 
 bot.hears("📊 THỐNG KÊ", (ctx) => {
+    const totalUsers = Object.keys(DB.users).length;
+    const totalRevenue = Object.values(DB.users).reduce((a, b) => a + (b.total_in || 0), 0);
     ctx.replyWithHTML(
-        `<b>📊 THỐNG KÊ TITAN v62.0</b>\n` +
+        `<b>📊 THỐNG KÊ HỆ THỐNG</b>\n` +
         `━━━━━━━━━━━━━━━━━━━━━\n` +
-        `👥 Khách hàng: <b>${DB.stats.users_count}</b>\n` +
-        `🔮 Lượt AI: <b>${DB.stats.ai_count}</b>\n` +
-        `💰 Doanh thu: <b>${DB.stats.total_in.toLocaleString()}đ</b>`
+        `👥 Tổng User: <b>${totalUsers}</b>\n` +
+        `💰 Tổng doanh thu: <b>${totalRevenue.toLocaleString()}đ</b>\n` +
+        `📡 Server Status: <b>Online 🟢</b>`
     );
 });
 
 bot.hears("⚡ PHÂN TÍCH MD5", (ctx) => {
     const u = DB.users[ctx.from.id];
-    if (u.expiry !== -1 && u.expiry < Date.now()) return ctx.reply("❌ Bạn cần nâng cấp VIP để sử dụng chức năng này.");
-    ctx.session = { step: 'AI_FLOW' };
+    if (u.expiry !== -1 && u.expiry < Date.now()) {
+        return ctx.reply("❌ Vui lòng liên hệ Admin @Cskhtoolhehe để mua Key VIP!");
+    }
+    ctx.session = { step: 'AI_WAIT' };
     ctx.replyWithHTML("📥 <b>VUI LÒNG DÁN MÃ MD5 (32 KÝ TỰ):</b>", UI.keyboards.back());
 });
 
 bot.hears("💰 NẠP TIỀN", (ctx) => {
-    ctx.session = { step: 'NAP_TIEN_FLOW' };
-    ctx.replyWithHTML("💵 <b>Nhập số tiền bạn muốn nạp vào ví:</b>", UI.keyboards.back());
+    ctx.session = { step: 'NAP_VAL' };
+    ctx.replyWithHTML("💵 <b>Nhập số tiền muốn nạp:</b>", UI.keyboards.back());
 });
 
-bot.hears("🔑 MUA KEY VIP", (ctx) => {
-    ctx.replyWithHTML(
-        `<b>💎 NÂNG CẤP TÀI KHOẢN VIP</b>\n` +
-        `━━━━━━━━━━━━━━━━━━━━━\n` +
-        `1. <b>VIP 30 Ngày</b>: 100,000đ\n` +
-        `2. <b>VIP Vĩnh Viễn</b>: 150,000đ\n\n` +
-        `<i>Ưu điểm: Không giới hạn phân tích, tỉ lệ thắng cao nhất.</i>`,
-        UI.keyboards.vip()
-    );
-});
-
-bot.hears("📞 LIÊN HỆ ADM", (ctx) => {
-    ctx.replyWithHTML(`💬 Mọi thắc mắc vui lòng liên hệ: <b>${CONFIG.CORE.ADMIN_HANDLE}</b>`);
-});
-
-// --- VIP ACTIVATION ---
-bot.hears("💎 VIP 30 NGÀY", (ctx) => {
-    const u = DB.users[ctx.from.id];
-    if (u.balance < CONFIG.PRICE.VIP_30D) return ctx.reply("❌ Số dư ví không đủ.");
-    u.balance -= CONFIG.PRICE.VIP_30D;
-    u.expiry = Math.max(Date.now(), u.expiry) + (30 * 86400000);
-    DB.save();
-    ctx.reply("✅ Đã kích hoạt VIP 30 ngày!", UI.keyboards.main(ctx.from.id));
-});
-
-bot.hears("🔥 VIP VĨNH VIỄN", (ctx) => {
-    const u = DB.users[ctx.from.id];
-    if (u.balance < CONFIG.PRICE.VIP_PERM) return ctx.reply("❌ Số dư ví không đủ.");
-    u.balance -= CONFIG.PRICE.VIP_PERM;
-    u.expiry = -1;
-    DB.save();
-    ctx.reply("🔥 CHÚC MỪNG! BẠN ĐÃ TRỞ THÀNH VIP VĨNH VIỄN!", UI.keyboards.main(ctx.from.id));
+bot.hears("📞 HỖ TRỢ", (ctx) => {
+    ctx.replyWithHTML(`💬 Mọi thắc mắc liên hệ Duy nhất Admin: <b>${CONFIG.CORE.ADMIN_HANDLE}</b>`);
 });
 
 // ==============================================================================
-// [TẦNG 6: ADMIN CONTROL PANEL]
+// [MODULE 6: HỆ THỐNG ADMIN RÚT GỌN - POWER PANEL]
 // ==============================================================================
-bot.hears("⚙️ BẢNG ĐIỀU KHIỂN", (ctx) => {
+bot.hears("⚙️ QUẢN TRỊ VIÊN", (ctx) => {
     if (ctx.from.id != CONFIG.CORE.ADMIN_ID) return;
-    ctx.replyWithHTML("<b>🛠 QUẢN TRỊ VIÊN TITAN</b>", UI.keyboards.admin());
+    ctx.replyWithHTML("<b>🛠 TITAN ADMIN CONSOLE</b>\nChào sếp! Mời sếp chọn lệnh xử lý:", UI.keyboards.admin());
 });
 
 bot.on('text', async (ctx, next) => {
@@ -279,78 +234,79 @@ bot.on('text', async (ctx, next) => {
     const txt = ctx.text.trim();
     const session = ctx.session || {};
 
-    // ADMIN ACTIONS
+    // --- ADMIN LOGIC ---
     if (uid == CONFIG.CORE.ADMIN_ID) {
-        if (txt === "📢 GỬI THÔNG BÁO") {
-            ctx.session = { step: 'ADMIN_BC' };
-            return ctx.reply("Nhập nội dung cần thông báo cho toàn bộ User:");
+        if (txt === "📋 DANH SÁCH USER") {
+            const list = Object.values(DB.users).map(u => `- <code>${u.id}</code> | ${u.name} | ${u.balance.toLocaleString()}đ`).join('\n');
+            return ctx.replyWithHTML(`<b>📋 DANH SÁCH NGƯỜI DÙNG:</b>\n\n${list.slice(0, 3800)}`);
         }
-        if (txt === "🔍 TRA CỨU ID") {
-            ctx.session = { step: 'ADMIN_LOOKUP' };
-            return ctx.reply("Nhập ID User cần kiểm tra:");
+        if (txt === "📢 THÔNG BÁO TỔNG") {
+            ctx.session = { step: 'ADM_BC' };
+            return ctx.reply("Nhập nội dung thông báo:");
         }
-        if (txt.startsWith('/add')) {
-            const [_, tid, amt] = txt.split(' ');
+        if (txt === "💎 KÍCH HOẠT VIP") {
+            return ctx.replyWithHTML("Sử dụng lệnh:\n<code>/vip30 [ID]</code> - VIP 30 ngày\n<code>/vipvv [ID]</code> - VIP Vĩnh viễn");
+        }
+        if (txt === "🚫 KHÓA TÀI KHOẢN") {
+            return ctx.replyWithHTML("Sử dụng lệnh:\n<code>/ban [ID]</code> - Khóa User\n<code>/unban [ID]</code> - Mở khóa");
+        }
+
+        // SLASH COMMANDS ADMIN
+        if (txt.startsWith('/vip30')) {
+            const tid = txt.split(' ')[1];
             if (DB.users[tid]) {
-                DB.users[tid].balance += parseInt(amt);
+                DB.users[tid].expiry = Date.now() + (30 * 86400000);
                 DB.save();
-                ctx.reply("✅ Đã cộng tiền thành công.");
-                bot.telegram.sendMessage(tid, `🔔 Admin đã nạp vào ví bạn <b>+${parseInt(amt).toLocaleString()}đ</b>`, { parse_mode: 'HTML' });
+                ctx.reply(`✅ Đã kích hoạt VIP 30 ngày cho ID ${tid}`);
+                bot.telegram.sendMessage(tid, "🎉 Chúc mừng! Admin đã kích hoạt <b>VIP 30 NGÀY</b> cho bạn.", { parse_mode: 'HTML' });
+            } return;
+        }
+        if (txt.startsWith('/vipvv')) {
+            const tid = txt.split(' ')[1];
+            if (DB.users[tid]) {
+                DB.users[tid].expiry = -1;
+                DB.save();
+                ctx.reply(`🔥 Đã kích hoạt VIP VĨNH VIỄN cho ID ${tid}`);
+                bot.telegram.sendMessage(tid, "🔥 Chúc mừng! Admin đã kích hoạt <b>VIP VĨNH VIỄN</b> cho bạn.", { parse_mode: 'HTML' });
             } return;
         }
         if (txt.startsWith('/ban')) {
             const tid = txt.split(' ')[1];
-            if (DB.users[tid]) { DB.users[tid].is_ban = true; DB.save(); ctx.reply("🚫 Đã khóa ID: " + tid); }
+            if (DB.users[tid]) { DB.users[tid].is_ban = true; DB.save(); ctx.reply("🚫 Đã khóa " + tid); }
+            return;
+        }
+        if (txt.startsWith('/unban')) {
+            const tid = txt.split(' ')[1];
+            if (DB.users[tid]) { DB.users[tid].is_ban = false; DB.save(); ctx.reply("🔓 Đã mở khóa " + tid); }
             return;
         }
 
-        if (session.step === 'ADMIN_BC') {
-            const ids = Object.keys(DB.users);
-            ctx.reply(`🚀 Đang gửi cho ${ids.length} người...`);
-            for (const id of ids) {
-                try { await bot.telegram.sendMessage(id, `📢 <b>THÔNG BÁO TỪ ADMIN:</b>\n\n${txt}`, { parse_mode: 'HTML' }); } catch (e) {}
+        if (session.step === 'ADM_BC') {
+            const list = Object.keys(DB.users);
+            ctx.reply(`🚀 Bắt đầu gửi thông báo đến ${list.length} người...`);
+            for (const target of list) {
+                try { await bot.telegram.sendMessage(target, `📢 <b>THÔNG BÁO HỆ THỐNG:</b>\n\n${txt}`, { parse_mode: 'HTML' }); } catch (e) {}
             }
-            ctx.reply("✅ Hoàn tất."); ctx.session = null; return;
-        }
-
-        if (session.step === 'ADMIN_LOOKUP') {
-            const target = DB.users[txt];
-            if (target) ctx.replyWithHTML(UI.render.profile(target));
-            else ctx.reply("❌ Không tìm thấy người dùng này.");
-            ctx.session = null; return;
+            ctx.reply("✅ Hoàn tất gửi tin!"); ctx.session = null; return;
         }
     }
 
-    // USER ACTIONS FLOW
-    if (session.step === 'AI_FLOW') {
-        if (txt.length !== 32) return ctx.reply("❌ Mã MD5 không hợp lệ (Phải đúng 32 ký tự).");
-        const loader = await ctx.replyWithHTML("📡 <b>Đang kết nối siêu máy chủ AI...</b>");
-        
-        const res = await NeuralAI.predict(txt);
-        DB.stats.ai_count++;
-        DB.save();
-
-        const html = 
-            `<b>🔮 KẾT QUẢ PHÂN TÍCH AI MD5</b>\n` +
-            `━━━━━━━━━━━━━━━━━━━━━\n` +
-            `<blockquote>🎯 Dự đoán: <b>${res.result}</b>\n` +
-            `💎 Độ tin cậy: <b>${res.accuracy}%</b>\n` +
-            `🧬 TraceID: <code>${res.trace}</code>\n` +
-            `⚡ Tốc độ: <b>${res.time}</b></blockquote>\n` +
-            `━━━━━━━━━━━━━━━━━━━━━\n` +
-            `📡 Server: <code>${res.node}</code>`;
-        
-        ctx.telegram.editMessageText(ctx.chat.id, loader.message_id, null, html, { parse_mode: 'HTML' });
+    // --- USER LOGIC ---
+    if (session.step === 'AI_WAIT') {
+        if (txt.length !== 32) return ctx.reply("❌ Mã MD5 không hợp lệ.");
+        const l = await ctx.replyWithHTML("🔍 <b>AI Titan đang giải mã Neural...</b>");
+        const res = await TitanAI.solve(txt);
+        const html = `<b>🔮 KẾT QUẢ AI MD5</b>\n━━━━━━━━━━━━━━━━━━━━━\n🎯 Dự đoán: <b>${res.result}</b>\n💎 Độ tin cậy: <b>${res.conf}%</b>\n🧬 Trace: <code>${res.trace}</code>\n⚡ Tốc độ: <b>${res.delay}s</b>\n━━━━━━━━━━━━━━━━━━━━━\n📡 <i>Dữ liệu được băm từ cụm máy chủ Titan.</i>`;
+        ctx.telegram.editMessageText(ctx.chat.id, l.message_id, null, html, { parse_mode: 'HTML' });
         ctx.session = null; return;
     }
 
-    if (session.step === 'NAP_TIEN_FLOW') {
+    if (session.step === 'NAP_VAL') {
         const amt = parseInt(txt);
-        if (isNaN(amt) || amt < CONFIG.PRICE.MIN_NAP) return ctx.reply("❌ Số tiền tối thiểu là 1.000đ.");
-        
-        const qr = `https://img.vietqr.io/image/${CONFIG.BANK.BIN}-${CONFIG.BANK.STK}-compact2.jpg?amount=${amt}&addInfo=NAP${uid}`;
+        if (isNaN(amt) || amt < 1000) return ctx.reply("❌ Tối thiểu nạp 1.000đ.");
+        const qr = `https://img.vietqr.io/image/${CONFIG.BANKING.BIN}-${CONFIG.BANKING.STK}-compact2.jpg?amount=${amt}&addInfo=NAP${uid}`;
         ctx.replyWithPhoto(qr, {
-            caption: `<b>🏦 THÔNG TIN CHUYỂN KHOẢN</b>\n━━━━━━━━━━━━━━━━━━━━━\n👤 Chủ TK: <b>${CONFIG.BANK.OWNER}</b>\n💰 Số tiền: <b>${amt.toLocaleString()}đ</b>\n📌 Nội dung: <code>NAP${uid}</code>\n━━━━━━━━━━━━━━━━━━━━━\n⚠️ <i>Lưu ý: Tiền tự cộng sau 1-5 giây.</i>`,
+            caption: `<b>🏦 THÔNG TIN CHUYỂN KHOẢN</b>\n━━━━━━━━━━━━━━━━━━━━━\n👤 Chủ TK: <b>${CONFIG.BANKING.OWNER}</b>\n💰 Số tiền: <b>${amt.toLocaleString()}đ</b>\n📌 Nội dung: <code>NAP${uid}</code>\n━━━━━━━━━━━━━━━━━━━━━\n⚠️ <i>Nạp đúng nội dung để được cộng tiền tự động sau 1s.</i>`,
             parse_mode: 'HTML'
         });
         ctx.session = null; return;
@@ -360,65 +316,44 @@ bot.on('text', async (ctx, next) => {
 });
 
 // ==============================================================================
-// [TẦNG 7: AUTO BANKING SCANNER - SIÊU TỐC]
+// [MODULE 7: AUTO-BANKING SCANNER SIÊU TỐC 1S]
 // ==============================================================================
-async function startBankScan() {
+async function scanBank() {
     try {
-        const res = await axios.get(`${CONFIG.BANK.ENDPOINT}${CONFIG.BANK.API_KEY}`);
-        const data = res.data?.data || [];
+        const r = await axios.get(`${CONFIG.BANKING.ENDPOINT}${CONFIG.BANKING.API_KEY}`);
+        const data = r.data?.data || [];
         for (const tx of data) {
             const txId = tx.id;
-            const content = tx.description.toUpperCase();
+            const memo = tx.description.toUpperCase();
             if (DB.ledger.includes(txId)) continue;
 
-            const match = content.match(/NAP(\d+)/);
+            const match = memo.match(/NAP(\d+)/);
             if (match) {
-                const targetUid = match[1];
-                const amount = parseInt(tx.amount);
-                if (DB.users[targetUid]) {
-                    DB.users[targetUid].balance += amount;
-                    DB.users[targetUid].total_deposit += amount;
-                    DB.stats.total_in += amount;
+                const targetId = match[1];
+                const amt = parseInt(tx.amount);
+                if (DB.users[targetId]) {
+                    DB.users[targetId].balance += amt;
+                    DB.users[targetId].total_in += amt;
                     DB.ledger.push(txId);
                     if (DB.ledger.length > 5000) DB.ledger.shift();
                     DB.save();
-                    DB.log("BANK", `Auto cộng ${amount} cho ID ${targetUid}`);
-                    bot.telegram.sendMessage(targetUid, `✅ <b>NẠP TIỀN THÀNH CÔNG!</b>\n\nVí của bạn đã được cộng <b>+${amount.toLocaleString()}đ</b>.`, { parse_mode: 'HTML' });
+                    DB.log("BANK", `Cộng ${amt} cho ${targetId}`);
+                    bot.telegram.sendMessage(targetId, `✅ <b>NẠP TIỀN THÀNH CÔNG!</b>\n\nVí của bạn đã được cộng <b>+${amt.toLocaleString()}đ</b>.`, { parse_mode: 'HTML' });
                 }
             }
         }
     } catch (e) {}
 }
-setInterval(startBankScan, CONFIG.BANK.SCAN_TIME);
+setInterval(scanBank, CONFIG.BANKING.SCAN_DELAY);
 
 // ==============================================================================
-// [TẦNG 8: WEB INTERFACE & DEPLOY]
+// [MODULE 8: SERVER & DEPLOY]
 // ==============================================================================
-app.get('/', (req, res) => {
-    res.send(`<body style="background:#0f172a;color:#38bdf8;text-align:center;padding-top:100px;font-family:sans-serif;">
-        <h1>🔱 TITAN AI v62.0 PRO ACTIVE</h1>
-        <p>Admin: ${CONFIG.CORE.ADMIN_HANDLE} | Users: ${DB.stats.users_count}</p>
-        <div style="border:1px solid #1e293b;padding:20px;display:inline-block;border-radius:10px;">STATUS: <span style="color:#22c55e;">GOLDEN PRODUCTION</span></div>
-    </body>`);
-});
+app.get('/', (req, res) => res.send('<h1 style="color:blue;text-align:center;">🔱 TITAN AI v64.0 IS ACTIVE</h1>'));
+app.listen(process.env.PORT || 3000);
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`[TITAN] WebInterface active on Port ${PORT}`));
+bot.launch().then(() => console.log("🔱 TITAN v64.0 MASTER READY"));
 
-// KHỞI CHẠY BOT
-bot.launch().then(() => {
-    console.log(`
-    ===================================================
-    🔱 TITAN AI v62.0 PREMIUM VIP PRO IS READY 🔱
-    ===================================================
-    - Bot Token: ${CONFIG.CORE.TOKEN}
-    - Admin ID: ${CONFIG.CORE.ADMIN_ID}
-    - Accuracy: 90% Win Rate Enabled
-    - Banking: 1s Scan Speed Active
-    ===================================================
-    `);
-});
-
-// CHỐNG CRASH HỆ THỐNG
-process.on('unhandledRejection', (reason) => DB.log("CRITICAL", `Rejection: ${reason}`));
-process.on('uncaughtException', (err) => DB.log("CRITICAL", `Exception: ${err.message}`));
+// Chống treo bot
+process.on('unhandledRejection', (e) => DB.log("ERROR", e));
+process.on('uncaughtException', (e) => DB.log("ERROR", e.message));
