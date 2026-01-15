@@ -1,9 +1,9 @@
 /**
  * ==============================================================================
  * 🚀 PROJECT: TITAN AI PREDICTOR MD5 - ULTIMATE PRE-MASTER
- * 🛠 VERSION: 64.0.0 (ENTERPRISE GOLDEN BUILD)
+ * 🛠 VERSION: 64.5.0 (INFINITY LOOP EDITION)
  * 👤 ADMIN: @Cskhtoolhehe (7675213335)
- * ⚖️ COMMITMENT: ANTI-CRASH | WIN-RATE 90% | BANKING 1S | 100% RESPONSIVE
+ * ⚖️ COMMITMENT: GIỮ ZIN TOÀN BỘ LOGIC 64.0 - CHỈ FIX VÒNG LẶP MD5
  * ==============================================================================
  */
 
@@ -32,7 +32,7 @@ const CONFIG = {
         OWNER: "DUONG THE TIEN",
         BIN: "VCCB",
         ENDPOINT: "https://api.thueapibank.vn/api/get-history-zalopay/",
-        SCAN_DELAY: 1000 // Siêu tốc 1 giây
+        SCAN_DELAY: 1000 
     },
     DATA: {
         DIR: "./TITAN_MASTER_DATA",
@@ -79,7 +79,7 @@ class TitanVault {
                 name: ctx.from.first_name,
                 username: ctx.from.username || "Guest",
                 balance: 0,
-                expiry: 0, // 0: Thường, -1: Vĩnh viễn, >0: Timestamp hết hạn
+                expiry: 0, 
                 total_in: 0,
                 is_ban: false,
                 role: (uid == CONFIG.CORE.ADMIN_ID) ? "ADMIN" : "USER"
@@ -104,8 +104,6 @@ class TitanAI {
                 const entropy = hash.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
                 const seed = Math.random() * 100;
                 let pred = (entropy % 2 === 0);
-                
-                // Logic Win-rate 90% chuẩn
                 let result = seed <= 90 ? (pred ? "TÀI" : "XỈU") : (pred ? "XỈU" : "TÀI");
 
                 resolve({
@@ -167,7 +165,6 @@ const UI = {
 // ==============================================================================
 bot.use(session());
 
-// Middleware đảm bảo bot phản hồi cho tất cả user
 bot.use((ctx, next) => {
     if (ctx.from) {
         const user = DB.sync(ctx);
@@ -209,7 +206,7 @@ bot.hears("⚡ PHÂN TÍCH MD5", (ctx) => {
         return ctx.reply("❌ Vui lòng liên hệ Admin @Cskhtoolhehe để mua Key VIP!");
     }
     ctx.session = { step: 'AI_WAIT' };
-    ctx.replyWithHTML("📥 <b>VUI LÒNG DÁN MÃ MD5 (32 KÝ TỰ):</b>", UI.keyboards.back());
+    ctx.replyWithHTML("📥 <b>CHẾ ĐỘ NHẬP LIỆU LIÊN TỤC:</b>\nVui lòng dán mã MD5 (32 ký tự).", UI.keyboards.back());
 });
 
 bot.hears("💰 NẠP TIỀN", (ctx) => {
@@ -234,7 +231,6 @@ bot.on('text', async (ctx, next) => {
     const txt = ctx.text.trim();
     const session = ctx.session || {};
 
-    // --- ADMIN LOGIC ---
     if (uid == CONFIG.CORE.ADMIN_ID) {
         if (txt === "📋 DANH SÁCH USER") {
             const list = Object.values(DB.users).map(u => `- <code>${u.id}</code> | ${u.name} | ${u.balance.toLocaleString()}đ`).join('\n');
@@ -251,7 +247,6 @@ bot.on('text', async (ctx, next) => {
             return ctx.replyWithHTML("Sử dụng lệnh:\n<code>/ban [ID]</code> - Khóa User\n<code>/unban [ID]</code> - Mở khóa");
         }
 
-        // SLASH COMMANDS ADMIN
         if (txt.startsWith('/vip30')) {
             const tid = txt.split(' ')[1];
             if (DB.users[tid]) {
@@ -291,14 +286,20 @@ bot.on('text', async (ctx, next) => {
         }
     }
 
-    // --- USER LOGIC ---
+    // --- USER LOGIC (FIXED: VÒNG LẶP MD5 LIÊN TỤC) ---
     if (session.step === 'AI_WAIT') {
         if (txt.length !== 32) return ctx.reply("❌ Mã MD5 không hợp lệ.");
+        
         const l = await ctx.replyWithHTML("🔍 <b>AI Titan đang giải mã Neural...</b>");
         const res = await TitanAI.solve(txt);
-        const html = `<b>🔮 KẾT QUẢ AI MD5</b>\n━━━━━━━━━━━━━━━━━━━━━\n🎯 Dự đoán: <b>${res.result}</b>\n💎 Độ tin cậy: <b>${res.conf}%</b>\n🧬 Trace: <code>${res.trace}</code>\n⚡ Tốc độ: <b>${res.delay}s</b>\n━━━━━━━━━━━━━━━━━━━━━\n📡 <i>Dữ liệu được băm từ cụm máy chủ Titan.</i>`;
-        ctx.telegram.editMessageText(ctx.chat.id, l.message_id, null, html, { parse_mode: 'HTML' });
-        ctx.session = null; return;
+        
+        const html = `<b>🔮 KẾT QUẢ AI MD5</b>\n━━━━━━━━━━━━━━━━━━━━━\n🎯 Dự đoán: <b>${res.result}</b>\n💎 Độ tin cậy: <b>${res.conf}%</b>\n🧬 Trace: <code>${res.trace}</code>\n⚡ Tốc độ: <b>${res.delay}s</b>\n━━━━━━━━━━━━━━━━━━━━━\n📥 <i>Hệ thống sẵn sàng! Hãy dán mã tiếp theo...</i>`;
+        
+        await ctx.telegram.editMessageText(ctx.chat.id, l.message_id, null, html, { parse_mode: 'HTML' });
+        
+        // GIỮ ZIN TOÀN BỘ NHƯNG BỎ DÒNG: ctx.session = null;
+        // Việc bỏ dòng này giúp giữ user ở trạng thái AI_WAIT mãi mãi cho đến khi bấm Quay lại.
+        return; 
     }
 
     if (session.step === 'NAP_VAL') {
@@ -346,14 +347,10 @@ async function scanBank() {
 }
 setInterval(scanBank, CONFIG.BANKING.SCAN_DELAY);
 
-// ==============================================================================
-// [MODULE 8: SERVER & DEPLOY]
-// ==============================================================================
-app.get('/', (req, res) => res.send('<h1 style="color:blue;text-align:center;">🔱 TITAN AI v64.0 IS ACTIVE</h1>'));
+app.get('/', (req, res) => res.send('<h1 style="color:blue;text-align:center;">🔱 TITAN AI v64.5 IS ACTIVE</h1>'));
 app.listen(process.env.PORT || 3000);
 
-bot.launch().then(() => console.log("🔱 TITAN v64.0 MASTER READY"));
+bot.launch().then(() => console.log("🔱 TITAN v64.5 MASTER READY"));
 
-// Chống treo bot
 process.on('unhandledRejection', (e) => DB.log("ERROR", e));
 process.on('uncaughtException', (e) => DB.log("ERROR", e.message));
